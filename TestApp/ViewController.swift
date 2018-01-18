@@ -137,8 +137,9 @@ extension ViewController: UITableViewDataSource {
                 cell.detailLabel.text = description
                 
             }
+            /*
+             // async image with URLSession
             if let image = detailsArray[indexPath.row]["imageHref"] as? String {
-                
                 URLSession.shared.dataTask(with: NSURL(string: image)! as URL, completionHandler: { (data, response, error) -> Void in
                     
                     if error != nil {
@@ -151,6 +152,21 @@ extension ViewController: UITableViewDataSource {
                     })
                     
                 }).resume()
+            }
+             */
+            // async image with NSURLConecction
+            if let image = detailsArray[indexPath.row]["imageHref"] as? String {
+                if let url = URL(string: image) {
+                    let request = URLRequest(url: url)
+                    NSURLConnection.sendAsynchronousRequest(request as URLRequest, queue: .main, completionHandler: { (response, data, error) in
+                        if let imageData = data as NSData? {
+                            cell.imgView.image = UIImage(data: imageData as Data)
+                        }
+                    })
+                }
+            }
+                
+            else{
             }
         }
         return cell
