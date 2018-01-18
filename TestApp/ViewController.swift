@@ -23,30 +23,38 @@ class ViewController: UIViewController,UITableViewDelegate {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         // Load Json Data
-        self.getJsonFromBundle()
-        // Setup navigation bar
-        setNavigationBar()
+        // self.getJsonFromBundle()
+        
         // SetUp Table view
         configureTableView()
 
         // Load data from URL
         // Tried with every possible request but not able to get response.
         WebserviceHelper().callFetchDataApi() { (response) in
+            self.jsonDict = response!
+            self.detailsArray = self.jsonDict["rows"] as! [[String:Any]]
+            self.tableview.reloadData()
+            // Setup Navigation Title
+            if self.jsonDict.count != 0 {
+                if let title = self.jsonDict["title"] {
+                    self.title = title as? String
+                }
+            }
         }
+        
+        // Setup navigation bar
+        setNavigationBar()
     }
     
     // MARK: - SetNavigationBar
     func setNavigationBar() {
         let screenSize: CGRect = UIScreen.main.bounds
         let navBar = UINavigationBar(frame: CGRect(x: 0, y: 0, width: screenSize.width, height: 44))
-        if jsonDict.count != 0 {
-            if let title = jsonDict["title"] {
-                self.title = title as? String
-            }
-        }
         self.view.addSubview(navBar)
     }
 
+    // *************  Static fetch *********** //
+    /*
     // MARK: - GetJsonFromBundle
     func getJsonFromBundle(){
             let file = Bundle.main.path(forResource: "countryJson", ofType: "json")
@@ -64,6 +72,7 @@ class ViewController: UIViewController,UITableViewDelegate {
             self.tableView.reloadData()
 
     }
+ */
     
     // MARK: - ConfigureTableView
 

@@ -30,69 +30,52 @@ struct WSAPIConstant {
 
 // MARK: Webservices
 class WebserviceHelper: NSObject {
+    
     var alamoFireManager : SessionManager!
     
-    func callWebservice(_ method:MethodType,  endUrl:APIEndUrl, completionHandler: @escaping (_ r: String) -> Void)
+    func callWebservice(_ method:MethodType,  endUrl:APIEndUrl, completionHandler: @escaping (_ r: [String : Any]?) -> Void)
     {
     
-        let path = WSAPIConstant.API_BASEURL
+        let path = "https://dl.dropboxusercontent.com/s/2iodh4vg0eortkl/facts.json"
         
         switch method {
+            
         case .post:
             print("*****")
             
         case .get:
-            
-            /*
-            let headers = [
-                "cache-control": "no-cache",
-                "postman-token": "d881ec05-b40a-2a67-e6c7-2d2964829916"
-            ]
-            
-            let request = NSMutableURLRequest(url: NSURL(string: path)! as URL,
-                                              cachePolicy: .useProtocolCachePolicy,
-                                              timeoutInterval: 10.0)
-            request.httpMethod = "GET"
-            request.allHTTPHeaderFields = headers
-            
-            let session = URLSession.shared
-            let dataTask = session.dataTask(with: request as URLRequest, completionHandler: { (data, response, error) -> Void in
-                if (error != nil) {
-                    print(error)
-                } else {
-                    let httpResponse = response as? HTTPURLResponse
-                    print(httpResponse)
-                }
-            })
-            
-            dataTask.resume()
-            
-            
- */
-            var mutableRequest : URLRequest!
-            mutableRequest = URLRequest.init(url: URL(string: path)!)
-            mutableRequest.httpMethod = "GET"
-            
-            if alamoFireManager == nil
-            {
-                let configuration = URLSessionConfiguration.default
-                configuration.timeoutIntervalForRequest = 120 // seconds
-                alamoFireManager  = Alamofire.SessionManager(configuration: configuration)
+            if isConnectedToInternet() {
+            Alamofire.request(path,method: .get, parameters: nil, encoding: URLEncoding.default, headers:["Authorization": ""]) .responseJSON
+                { response in
+
+                    if response.response?.statusCode == 401{
+                        return
+                    }
+           
+                    do {
+                        
+                        let iso = String(data: response.data!, encoding: String.Encoding.isoLatin1)
+                        
+                        let dutf8: Data? = iso?.data(using: String.Encoding.utf8)
+                        
+                        if let responseJSON = try JSONSerialization.jsonObject(with: dutf8!, options: .allowFragments) as? NSDictionary {
+                            
+                            completionHandler(responseJSON as? [String : Any])
+                            
+                        }
+                    } catch {
+                        print("Error getting API data: \(error.localizedDescription)")
+                        
+                    }
             }
-            
-            alamoFireManager.request(mutableRequest)
-                .responseString { response in
-                    print(response)
-                    
             }
-            
-        }
+    }
     }
     
     
     
     //MARK: CallFetchDataApi WS
-    func callFetchDataApi(completionHandler: @escaping (_ r: String) -> Void)
+    func callFetchDataApi(completionHandler: @escaping (_ r: [String : Any]?) -> Void)
     {
         
         self.callWebservice(MethodType.get , endUrl: APIEndUrl.fetchData) { (resp) in
