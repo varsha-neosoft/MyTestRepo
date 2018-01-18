@@ -13,12 +13,19 @@ class ViewController: UIViewController,UITableViewDelegate {
     var tableView = UITableView()
 
     fileprivate let tableCellReuseIdentifier = "MyCell"
-
     fileprivate let tableview = UITableView()
     
     var jsonDict = [String:Any]()
     var detailsArray = [[String:Any]]()
-
+    // SetUp Refresh Control
+    lazy var refreshControl: UIRefreshControl = {
+        let refreshControl = UIRefreshControl()
+        refreshControl.addTarget(self, action: #selector(ViewController.handleRefresh(_:)), for: UIControlEvents.valueChanged)
+        refreshControl.tintColor = UIColor.red
+        
+        return refreshControl
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
@@ -28,8 +35,15 @@ class ViewController: UIViewController,UITableViewDelegate {
         // SetUp Table view
         configureTableView()
 
-        // Load data from URL
-        // Tried with every possible request but not able to get response.
+        // Call to API
+        self.fetchDataFromInternet()
+        
+        // Setup navigation bar
+        setNavigationBar()
+    }
+    
+    // MARK: - Load data from URL
+    func fetchDataFromInternet()  {
         WebserviceHelper().callFetchDataApi() { (response) in
             self.jsonDict = response!
             self.detailsArray = self.jsonDict["rows"] as! [[String:Any]]
@@ -41,10 +55,8 @@ class ViewController: UIViewController,UITableViewDelegate {
                 }
             }
         }
-        
-        // Setup navigation bar
-        setNavigationBar()
     }
+   
     
     // MARK: - SetNavigationBar
     func setNavigationBar() {
@@ -89,9 +101,17 @@ class ViewController: UIViewController,UITableViewDelegate {
         tableview.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
         tableview.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
         tableview.contentInset = UIEdgeInsetsMake(64,0,0,0);
+        // Add Refresh Control
+        tableview.addSubview(self.refreshControl)
 
     }
-
+    @objc func handleRefresh(_ refreshControl: UIRefreshControl) {
+        // Do some reloading of data and update the table view's data source
+        // Check for new Json Data
+        // Call to API
+        self.fetchDataFromInternet()
+        refreshControl.endRefreshing()
+    }
     
   
 }
